@@ -2,8 +2,9 @@
  "nodes": [
 {"name": "W"},
  {"name": "I"},
- {"name": "w"},
- {"name": "S"}
+ {"name": "B"},
+ {"name": "S"},
+ {"name": "0"}
  ], 
 
 
@@ -11,8 +12,6 @@
 [{"source": 0, "target": 1, "value": 2.0},
 {"source": 0, "target": 2, "value": 2.0},
 {"source":1 , "target": 3, "value": 2.0},
-{"source": 2, "target": 3, "value": 2.0}
-
-
- ]
+{"source": 2, "target": 3, "value": 2.0},
+{"source": 4, "target": 1, "value": 1.0}]
 , "multigraph": false}

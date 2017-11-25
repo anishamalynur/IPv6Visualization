@@ -5,7 +5,9 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include <string.h>
+#include <string>
 #include <fstream>
+//#include <json/value.h>
 #define TOTAL_LEVELS 32
 
 using namespace std;
@@ -141,6 +143,40 @@ void addAddress(string ad, aDag* theDag){
 
 }
 
+void dataToCsv(aDag* theDag){
+   ofstream myfile;
+   myfile.open ("dagInfo.csv");
+	
+   int totCount = 0;
+	for(int i = 0; i < TOTAL_LEVELS; i++){
+		
+		node* curNode = theDag->levels[i];
+		node* nextNode = NULL;
+		
+		while(curNode != NULL){
+			myfile << std::to_string(i) + ",";
+			myfile << curNode->val + ",";
+			myfile << std::to_string(curNode-> count) + ",";
+			myfile << std::to_string(totCount) + ",";
+			totCount++;
+
+			for(int j = 0; j < 36; j++){
+				if(curNode -> nextLevelNodes[j] !=NULL)
+				myfile << curNode -> nextLevelNodes[j] -> val + ",";
+			}
+			myfile << "\n";
+			nextNode = curNode -> nextNode;
+
+			curNode = nextNode;
+		}
+	
+	}
+
+	myfile << "9999999999999\n";
+	myfile << "9999999999999\n";
+	
+}
+
 void cleanup(aDag* theDag){
 	for(int i = 0; i < TOTAL_LEVELS; i++){
 		node* curNode = theDag->levels[i];
@@ -194,13 +230,15 @@ int  main(int argc, char* argv[]){
 	/*string ad = "aaa";
 	string ab = "abd";
 	string aa = "aaa";
-	string ac = "efg";
+	string ac = "efd";
 
 	addAddress(ad, theDag);
 	addAddress(ab, theDag);
 	addAddress(aa, theDag);
 	addAddress(ac, theDag);
 	addAddress(ad, theDag);*/
+
+	dataToCsv(theDag);
 
 	cleanup(theDag);
 	
