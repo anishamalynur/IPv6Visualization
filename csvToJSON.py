@@ -7,9 +7,6 @@ print("in csv to JSON")
 #	for row in reader:
 #		print row
 
-import csv 
-import sys
- 
 
 #f = open('smallDagTest.csv', 'rb')
 #reader = csv.reader(f)
@@ -35,28 +32,15 @@ import sys
 
 #print content2[2]
 
-
+#level, nodeVal, #of Nodes, node#, rest are next level nodes
 import csv
 import json
 
 csvfile = open('dagInfo.csv', 'r')
-jsonfile = open('file.json', 'w')
+jsonfile = open('file2.json', 'w')
 
 #sample = {'ObjectInterpolator': 1629,  'PointInterpolator': 1675, 'RectangleInterpolator': 2042}
 data = {}
-arra = [{"source": 0, "target": 1, "value": 2.0},
-{"source": 0, "target": 2, "value": 2.0},
-{"source":1 , "target": 3, "value": 2.0},
-{"source": 2, "target": 3, "value": 2.0},
-{"source": 4, "target": 1, "value": 1.0}]
-
-nodes = [
-{"name": "W"},
- {"name": "I"},
- {"name": "B"},
- {"name": "S"},
- {"name": "0"}
- ]
 
 nameArray =[]
 linksArray = []
@@ -66,23 +50,37 @@ dataArray2 = []
 nameIndex = 0;
 linkIndex = 0;
 currentLevel = 0;
-
+nextLevel = 0;
+useNextLine = 0;
 for line in csvfile:
+	print "TOP OF THE LOOP\n"
 	print line
 	x = csvfile.tell()
 	#if line[0] == "9999999999999":
 	#	break
-	#print "top of loop"	
-	if int(line[0]) == int(currentLevel):
-		print "populating dataArray1 with" + line
+	#if useNextLine:
+	nextLevel = currentLevel +1
+	#print("nextlevel is " + str(nextLevel))
+	#print("currentlevel is " + str(currentLevel))
+		
+	#print("line[0]  is " + line[0])
+
+	theLine = line.strip(',\n').split(',')
+	if int(theLine[0]) == int(currentLevel):
+		print ("populating dataArray1 with" + line)
 		dataArray1.append(line.strip(',\n').split(','))
-	elif int(line[0]) == int(currentLevel) + 1:
-		print "populating dataArray2 with" + line
+		print( dataArray1)
+	elif int(theLine[0]) == nextLevel:
+		print ("populating dataArray2 with" + line)
 		dataArray2.append(line.strip(',\n').split(','))
+		print( dataArray2)
 	else:
-	
+		
 		nextline = line.strip(',\n').split(',')
-		print "currentLevel is " + str(currentLevel)
+		print "next level is" + str(nextline)
+		print ("currentLevel is " + str(currentLevel))
+		print ("dataArray1: " + str(dataArray1))
+		print("dataArray2: "+ str(dataArray2))
 		for item in dataArray1:
 			nodeName = {}
 			nodeName['name'] = item[1]
@@ -94,20 +92,23 @@ for line in csvfile:
 						linkName = {}
 						linkName['source'] = int(item[3])
 						linkName['target'] = int(item2[3])
-						linkName['value'] = int(item2[2])
-						linksArray.append(linkName);	
+						linkName['value'] = int(item2[2]) # item2[2]
+						linksArray.append(linkName);		
 					
 		
 		currentLevel += 1
 		dataArray1 = dataArray2
+		print("dataArray1 is now: " + str(dataArray1))
 		dataArray2 = []
 		dataArray2.append(nextline)
-		print linksArray
-		print nameArray
-		print "dataArray1"
-		print dataArray1
-		print "dataArray2"
-		print dataArray2
+		print("dataArray2 is now: " + str(dataArray2))
+		print("curLevel is now: " + str(currentLevel))
+print (linksArray)
+print (nameArray)
+print ("dataArray1")
+print (dataArray1)
+print ("dataArray2")
+print (dataArray2)
 
 	
 
@@ -121,8 +122,3 @@ sample = json.dumps(data)
 
 
 jsonfile.write(sample)
-
-
-
-
-
