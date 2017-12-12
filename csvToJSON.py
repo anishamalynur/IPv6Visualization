@@ -36,8 +36,8 @@ print("in csv to JSON")
 import csv
 import json
 
-csvfile = open('dagInfo.csv', 'r')
-jsonfile = open('file2.json', 'w')
+csvfile = open('dagInfo4.csv', 'r')
+jsonfile = open('file5.json', 'w')
 
 #sample = {'ObjectInterpolator': 1629,  'PointInterpolator': 1675, 'RectangleInterpolator': 2042}
 data = {}
@@ -86,14 +86,26 @@ for line in csvfile:
 			nodeName['name'] = item[1]
 			nameArray.append(nodeName)
 			itemSize = len(item)
-			for i in range(4, itemSize):  
+			for i in range(4, itemSize -1, 2):
+			#for i in range(4, itemSize):
+				print( "i value before increment" + str(i))
+				#i += 1
+				print ("i value after increment" + str(i))  
 				for item2 in dataArray2:
 					if item2[1] == item[i]:
 						linkName = {}
 						linkName['source'] = int(item[3])
 						linkName['target'] = int(item2[3])
-						linkName['value'] = int(item2[2]) # item2[2]
-						linksArray.append(linkName);		
+						print(" i val" + str(i))
+						##print("item size val" + str(itemSize))
+						print ("item[i] = " + item[i])
+						print ("item[i+1] = " + item[i])
+						linkName['value'] = int(item[i+1]) # item2[2]
+
+						#linkName['value'] = int(item2[2])
+						linksArray.append(linkName)
+								
+							
 					
 		
 		currentLevel += 1

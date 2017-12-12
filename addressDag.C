@@ -22,6 +22,7 @@ typedef struct DAG{
 typedef struct NODE{
 	string val;
 	int count;
+	int nCount;
 	node** nextLevelNodes;
 	node* nextNode;
 }node;
@@ -72,13 +73,22 @@ node* addNodetoDag(aDag* dag, string aChar, node* curNode, node* prevNode, int l
 				// if it exists then done
 				if(prevNode->nextLevelNodes[index] != NULL){
 					cout << "connection already existed "<< endl;
+					prevNode->nextLevelNodes[index] -> nCount++;
+					//cout << "ncount is " << prevNode->nextLevelNodes[index] -> nCount << "for the prev node" << prevNode -> val << "for the node pointer in nextLevelNodes" << prevNode->nextLevelNodes[index] ->val << endl;
 					return curNode;	
 				}
 				
 				// add connection 
 				if((prevNode-> nextLevelNodes)[index] ==  NULL){
 					cout << "adding connection" << endl;
-					((prevNode-> nextLevelNodes)[index]) = curNode;
+					node* copyNode  =  (node*)malloc(sizeof(node));  
+					//memcpy(&copyNode, &curNode, sizeof(node));
+					copyNode -> val = aChar;
+					copyNode -> nCount = 0;
+					//((prevNode-> nextLevelNodes)[index]) = curNode;
+					((prevNode-> nextLevelNodes)[index]) = copyNode;
+					prevNode->nextLevelNodes[index] -> nCount++;
+	//cout << "ncount is " << prevNode->nextLevelNodes[index] -> nCount << "for the prev node" << prevNode -> val << "for the node pointer in nextLevelNodes" << prevNode->nextLevelNodes[index] ->val << endl;
 					return curNode;	
 				}
 
@@ -114,8 +124,21 @@ node* addNodetoDag(aDag* dag, string aChar, node* curNode, node* prevNode, int l
 	//add connection if not the first level
 	if(prevNode !=NULL){
 		int index = charToIndex(aChar);
-		cout << "adding connection because not the first level" << endl;
-		(prevNode-> nextLevelNodes)[index] = curNode;
+		/*cout << "adding connection because not the first level" << endl;
+		(prevNode-> nextLevelNodes)[index] = curNode;*/
+		
+					cout << "adding connection2" << endl;
+					node* copyNode =  (node*)malloc(sizeof(node)); 
+					//memcpy(&copyNode, &curNode, sizeof(node));
+					copyNode -> nCount = 0;
+					copyNode -> val = aChar;
+					//copyNode -> val = 
+					//((prevNode-> nextLevelNodes)[index]) = curNode;
+					((prevNode-> nextLevelNodes)[index]) = copyNode;
+					
+					prevNode->nextLevelNodes[index] -> nCount++;
+					//cout << "ncount is " << prevNode->nextLevelNodes[index] -> nCount << "for the prev node" << prevNode -> val << "for the node pointer in nextLevelNodes" << prevNode->nextLevelNodes[index] ->val << endl;
+
 	}
 	return newNode;
 }
@@ -145,7 +168,8 @@ void addAddress(string ad, aDag* theDag){
 
 void dataToCsv(aDag* theDag){
    ofstream myfile;
-   myfile.open ("dagInfo.csv");
+   myfile.open ("dagInfo4.csv");
+	int curCount = 0;
 	
    int totCount = 0;
 	for(int i = 0; i < TOTAL_LEVELS; i++){
@@ -161,12 +185,14 @@ void dataToCsv(aDag* theDag){
 			totCount++;
 
 			for(int j = 0; j < 36; j++){
-				if(curNode -> nextLevelNodes[j] !=NULL)
+				if(curNode -> nextLevelNodes[j] !=NULL){
 				myfile << curNode -> nextLevelNodes[j] -> val + ",";
+				curCount =  curNode -> nextLevelNodes[j] -> nCount;
+				myfile << std::to_string(curCount) + ","; }
 			}
 			myfile << "\n";
 			nextNode = curNode -> nextNode;
-
+	
 			curNode = nextNode;
 		}
 	
@@ -230,13 +256,18 @@ int  main(int argc, char* argv[]){
 	/*string ad = "aaa";
 	string ab = "abd";
 	string aa = "aaa";
-	string ac = "efd";
+	string ac = "efd";*/
+
+	/*string ad = "20";
+	string ab = "20";
+	string aa = "20";
+	string ac = "30";
 
 	addAddress(ad, theDag);
 	addAddress(ab, theDag);
 	addAddress(aa, theDag);
 	addAddress(ac, theDag);
-	addAddress(ad, theDag);*/
+	//addAddress(ad, theDag);*/
 
 	dataToCsv(theDag);
 
