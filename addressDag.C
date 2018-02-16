@@ -1,14 +1,15 @@
-#include <iostream>
-#include <algorithm>
+//#include <iostream>
+//#include <algorithm>
 #include <string>
 #include <stdio.h>
 #include <stdlib.h>
-#include <ctype.h>
+//#include <ctype.h>
 #include <string.h>
 #include <string>
 #include <fstream>
 //#include <json/value.h>
-#define TOTAL_LEVELS 32
+#define TOTAL_LEVELS 3
+#define POSSIBLE_VALUES 26
 
 using namespace std;
 
@@ -53,7 +54,7 @@ node* addNodetoDag(aDag* dag, string aChar, node* curNode, node* prevNode, int l
 	while(flag && curNode != NULL){
 		// no
 		if(aChar.compare(curNode->val) != 0){
-			cout<< "character did not match" << endl;
+			//cout<< "character did not match" << endl;
 			if(curNode -> nextNode == NULL){
 				lastNodeAtLevel = curNode;
 			}
@@ -61,26 +62,27 @@ node* addNodetoDag(aDag* dag, string aChar, node* curNode, node* prevNode, int l
 		}
 		// yes - increment count
 		else if(aChar.compare(curNode->val) == 0){
-			cout<< "character match!!" << endl;
+			//cout<< "character match!!" << endl;
 
 			flag = false;
 			curNode->count += 1;
-			cout << "current count for this node is " << curNode->count << endl;
+			//cout << "current count for this node is " << curNode->count << endl;
 
 			// now check if a connection to the previous level node exists
 			if(prevNode != NULL){
 				int index = charToIndex(aChar);
 				// if it exists then done
 				if(prevNode->nextLevelNodes[index] != NULL){
-					cout << "connection already existed "<< endl;
+					//cout << "connection already existed "<< endl;
 					prevNode->nextLevelNodes[index] -> nCount++;
 					//cout << "ncount is " << prevNode->nextLevelNodes[index] -> nCount << "for the prev node" << prevNode -> val << "for the node pointer in nextLevelNodes" << prevNode->nextLevelNodes[index] ->val << endl;
 					return curNode;	
 				}
 				
 				// add connection 
-				if((prevNode-> nextLevelNodes)[index] ==  NULL){
-					cout << "adding connection" << endl;
+				//if((prevNode-> nextLevelNodes)[index] ==  NULL){
+				 else{
+					//cout << "adding connection" << endl;
 					node* copyNode  =  (node*)malloc(sizeof(node));  
 					//memcpy(&copyNode, &curNode, sizeof(node));
 					copyNode -> val = aChar;
@@ -100,11 +102,12 @@ node* addNodetoDag(aDag* dag, string aChar, node* curNode, node* prevNode, int l
 	}
 	
 	// add a new node at level# because it did not exist
+	
 	node* newNode = (node*)malloc(sizeof(node));
 	newNode->val = aChar;
 	newNode->count = 1;
-	node** nextLNodes = (node**)malloc(sizeof(node*)*36);
-	for(int i  = 0; i < 36; i++){
+	node** nextLNodes = (node**)malloc(sizeof(node*)*POSSIBLE_VALUES);
+	for(int i  = 0; i < POSSIBLE_VALUES; i++){
 		nextLNodes[i] = NULL;
 	}
 	newNode->nextLevelNodes = nextLNodes;
@@ -119,7 +122,7 @@ node* addNodetoDag(aDag* dag, string aChar, node* curNode, node* prevNode, int l
 		lastNodeAtLevel->nextNode = newNode;
 	}
 	curNode = newNode;
-	cout << "done creating new node because it did not exist in the level" << endl;
+	//cout << "done creating new node because it did not exist in the level" << endl;
 	
 	//add connection if not the first level
 	if(prevNode !=NULL){
@@ -127,7 +130,7 @@ node* addNodetoDag(aDag* dag, string aChar, node* curNode, node* prevNode, int l
 		/*cout << "adding connection because not the first level" << endl;
 		(prevNode-> nextLevelNodes)[index] = curNode;*/
 		
-					cout << "adding connection2" << endl;
+					//cout << "adding connection2" << endl;
 					node* copyNode =  (node*)malloc(sizeof(node)); 
 					//memcpy(&copyNode, &curNode, sizeof(node));
 					copyNode -> nCount = 0;
@@ -144,31 +147,33 @@ node* addNodetoDag(aDag* dag, string aChar, node* curNode, node* prevNode, int l
 }
 
 
-void stringReplacer(string& address, const string& find, const string& replace){
+/*void stringReplacer(string& address, const string& find, const string& replace){
 	int pos = 0;
 	while((pos = address.find(find, pos)) != std::string::npos){
 		address.replace(pos, find.length(), replace);
 		pos += replace.length();
 	}
 
-}
+}*/
 
 void addAddress(string ad, aDag* theDag){
 
 
 	node* previousNode = NULL;
-
+	string c = "";
 	for(int i= 0; i < ad.length(); i++){
-		string c(1, ad[i]);
-		cout << endl << "the letter is: "<< c << endl;
+		//c(1, ad[i]);
+		char ch = ad.at(i);
+		c.push_back(ch);
+		//cout << endl << "the letter is: "<< c << endl;
 		previousNode = addNodetoDag(theDag, c, theDag->levels[i], previousNode, i);
 	}
 
 }
 
-void dataToCsv(aDag* theDag){
+void dataToCsv(aDag* theDag, string fileName){
    ofstream myfile;
-   myfile.open ("dagInfo4.csv");
+   myfile.open(fileName);
 	int curCount = 0;
 	
    int totCount = 0;
@@ -184,7 +189,7 @@ void dataToCsv(aDag* theDag){
 			myfile << std::to_string(totCount) + ",";
 			totCount++;
 
-			for(int j = 0; j < 36; j++){
+			for(int j = 0; j < POSSIBLE_VALUES; j++){
 				if(curNode -> nextLevelNodes[j] !=NULL){
 				myfile << curNode -> nextLevelNodes[j] -> val + ",";
 				curCount =  curNode -> nextLevelNodes[j] -> nCount;
@@ -197,12 +202,78 @@ void dataToCsv(aDag* theDag){
 		}
 	
 	}
-
+	// signifies end of file
 	myfile << "9999999999999\n";
 	myfile << "9999999999999\n";
 	
 }
 
+
+
+void dataToGraphInfo(aDag* theDag, string fileName){
+   ofstream myFile;
+   myFile.open(fileName);
+	int curCount = 0;
+	
+   int totCount = 0;
+	for(int i = 0; i < TOTAL_LEVELS; i++){
+		
+		node* curNode = theDag->levels[i];
+		node* nextNode = NULL;
+		int levelCount = 0;
+		int minVal = 999;
+		int maxVal = -1;
+		int nextLevel[POSSIBLE_VALUES] = {0};
+
+		while(curNode != NULL){
+		
+			int nodeVal = charToIndex(curNode->val);
+			if( nodeVal < minVal){
+				minVal = nodeVal;	
+			}
+			if(nodeVal > maxVal){
+				maxVal = nodeVal;
+			}
+
+			levelCount++;
+			
+			for(int j = 0; j < POSSIBLE_VALUES; j++){
+	
+				if(curNode -> nextLevelNodes[j] !=NULL){
+				nextLevel[j] +=1;
+				}
+			}
+		
+			nextNode = curNode -> nextNode;
+		
+			curNode = nextNode;
+		}
+		int minNextVal = 999;
+		int maxNextVal = -1;
+		int nextLevelSum = 0;
+		myFile << i << ",";
+		myFile << levelCount << ",";
+		myFile << (maxVal - minVal) << ",";
+		for(int j = 0; j < POSSIBLE_VALUES; j++){
+			
+			nextLevelSum += nextLevel[j]; 
+			if(nextLevel[j] < minNextVal){
+				minNextVal = nextLevel[j];
+			}
+			if(nextLevel[j] > maxNextVal){
+				maxNextVal = nextLevel[j];
+			}
+			
+		}
+		myFile << minNextVal << ",";
+		myFile << maxNextVal << ",";
+		myFile << nextLevelSum/POSSIBLE_VALUES;
+		myFile << "\n";
+	
+	}	
+}
+
+//free memory
 void cleanup(aDag* theDag){
 	for(int i = 0; i < TOTAL_LEVELS; i++){
 		node* curNode = theDag->levels[i];
@@ -211,6 +282,7 @@ void cleanup(aDag* theDag){
 		while(curNode != NULL){
 			nextNode = curNode -> nextNode;
 			free(curNode -> nextLevelNodes);
+			//for( int j = 0; j < 
 			free(curNode);
 			curNode = nextNode;
 		}
@@ -235,23 +307,51 @@ int  main(int argc, char* argv[]){
 		printf("error in creating the dag");
 	}			
 
-	// open IPdata file and read and add each address	
+	/*// open IPdata file and read and add each address	
 	ifstream infile;
 	//argv[1] should be the file to be opened
+	//string openString = "dataSets/";
+	//openString.append(argv[1]); //argv[1] is the name of the raw IPv6 file
+	//cout << openString;
 	infile.open(argv[1]);
 	string sLine;
 
 	while (!infile.eof()){
+		
 		infile >> sLine;
 		string ad = sLine.data();
-		stringReplacer(ad, "::", "0000");
-		stringReplacer(ad, ":", "");
+		//stringReplacer(ad, "::", "0000");
+		//stringReplacer(ad, ":", "");
 		cout << ad << endl;
-    		addAddress(ad, theDag);
+    	addAddress(ad, theDag);
 	}
 
-	infile.close();
+	infile.close();*/
 	
+	/*string ad = "aaa";
+	string ab = "abd";
+	string aa = "aaa";
+	string ac = "efd";*/
+
+	string ad = "2";
+	string ab = "2";
+	//string aa = "20";
+	//string ac = "30";
+
+	addAddress(ad, theDag);
+	addAddress(ab, theDag);
+	//addAddress(aa, theDag);
+	//addAddress(ac, theDag);
+
+
+	//dataToCsv(theDag, argv[2]); //argv[2] is the name of the output .csv file
+	dataToGraphInfo(theDag, "newGraphInfo");
+	cleanup(theDag);
+	
+//	cout << "end of program " << endl;
+}
+
+
 	//testing simple cases
 	/*string ad = "aaa";
 	string ab = "abd";
@@ -268,12 +368,5 @@ int  main(int argc, char* argv[]){
 	addAddress(aa, theDag);
 	addAddress(ac, theDag);
 	//addAddress(ad, theDag);*/
-
-	dataToCsv(theDag);
-
-	cleanup(theDag);
-	
-	cout << "end of program " << endl;
-}
 
 

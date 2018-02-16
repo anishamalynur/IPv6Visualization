@@ -1,43 +1,13 @@
-print("in csv to JSON")
 
-#import CSV
-
-#With open('smallDagTest.csv', 'rb') as f:
-#	reader = csv.reader(f)
-#	for row in reader:
-#		print row
-
-
-#f = open('smallDagTest.csv', 'rb')
-#reader = csv.reader(f)
-#for row in reader:
-#	print row
- 
-#f.close()
-
-
-#with open('smallDagTest.csv') as f:
-	
-#	content = f.readline()
-#	content2 = f.readline()
-	#content2.append(f.readline())
-# you may also want to remove whitespace characters like `\n` at the end of each line
-#content2 = [x.strip() for x in content2] 
-#content2 = content2.split(",")
-#content2 = content2.split("|")
-#content2[2] = content2[2].split("[]");
-#print content
-#print "hi"
-#print content2
-
-#print content2[2]
 
 #level, nodeVal, #of Nodes, node#, rest are next level nodes
 import csv
+import sys
 import json
 
-csvfile = open('dagInfo4.csv', 'r')
-jsonfile = open('file5.json', 'w')
+csvfile = open(sys.argv[1], 'r')
+jsonfile = open(sys.argv[2], 'w')
+#'dagInfo4.csv'
 
 #sample = {'ObjectInterpolator': 1629,  'PointInterpolator': 1675, 'RectangleInterpolator': 2042}
 data = {}
