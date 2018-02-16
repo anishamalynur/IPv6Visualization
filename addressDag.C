@@ -1,15 +1,16 @@
-//#include <iostream>
+	
+#include <iostream>
 //#include <algorithm>
-#include <string>
+
 #include <stdio.h>
 #include <stdlib.h>
-//#include <ctype.h>
+#include <ctype.h>
 #include <string.h>
 #include <string>
 #include <fstream>
 //#include <json/value.h>
-#define TOTAL_LEVELS 3
-#define POSSIBLE_VALUES 26
+#define TOTAL_LEVELS 32
+#define POSSIBLE_VALUES 16
 
 using namespace std;
 
@@ -83,7 +84,8 @@ node* addNodetoDag(aDag* dag, string aChar, node* curNode, node* prevNode, int l
 				//if((prevNode-> nextLevelNodes)[index] ==  NULL){
 				 else{
 					//cout << "adding connection" << endl;
-					node* copyNode  =  (node*)malloc(sizeof(node));  
+					//node* copyNode  =  (node*)malloc(sizeof(node));
+					node* copyNode = new node();  
 					//memcpy(&copyNode, &curNode, sizeof(node));
 					copyNode -> val = aChar;
 					copyNode -> nCount = 0;
@@ -103,10 +105,12 @@ node* addNodetoDag(aDag* dag, string aChar, node* curNode, node* prevNode, int l
 	
 	// add a new node at level# because it did not exist
 	
-	node* newNode = (node*)malloc(sizeof(node));
+	//node* newNode = (node*)malloc(sizeof(node));
+	node* newNode = new node();
 	newNode->val = aChar;
 	newNode->count = 1;
-	node** nextLNodes = (node**)malloc(sizeof(node*)*POSSIBLE_VALUES);
+	//node** nextLNodes = (node**)malloc(sizeof(node*)*POSSIBLE_VALUES);
+	node** nextLNodes = new node*[POSSIBLE_VALUES];
 	for(int i  = 0; i < POSSIBLE_VALUES; i++){
 		nextLNodes[i] = NULL;
 	}
@@ -121,7 +125,7 @@ node* addNodetoDag(aDag* dag, string aChar, node* curNode, node* prevNode, int l
 	else{
 		lastNodeAtLevel->nextNode = newNode;
 	}
-	curNode = newNode;
+	curNode = newNode; // do I need this??
 	//cout << "done creating new node because it did not exist in the level" << endl;
 	
 	//add connection if not the first level
@@ -131,15 +135,16 @@ node* addNodetoDag(aDag* dag, string aChar, node* curNode, node* prevNode, int l
 		(prevNode-> nextLevelNodes)[index] = curNode;*/
 		
 					//cout << "adding connection2" << endl;
-					node* copyNode =  (node*)malloc(sizeof(node)); 
+					//node* copyNode =  (node*)malloc(sizeof(node));
+				node* copyNode = new node;   
 					//memcpy(&copyNode, &curNode, sizeof(node));
-					copyNode -> nCount = 0;
-					copyNode -> val = aChar;
+				copyNode -> nCount = 0;
+				copyNode -> val = aChar;
 					//copyNode -> val = 
 					//((prevNode-> nextLevelNodes)[index]) = curNode;
-					((prevNode-> nextLevelNodes)[index]) = copyNode;
+				((prevNode-> nextLevelNodes)[index]) = copyNode;
 					
-					prevNode->nextLevelNodes[index] -> nCount++;
+				prevNode->nextLevelNodes[index] -> nCount++;
 					//cout << "ncount is " << prevNode->nextLevelNodes[index] -> nCount << "for the prev node" << prevNode -> val << "for the node pointer in nextLevelNodes" << prevNode->nextLevelNodes[index] ->val << endl;
 
 	}
@@ -160,11 +165,12 @@ void addAddress(string ad, aDag* theDag){
 
 
 	node* previousNode = NULL;
-	string c = "";
+	//make
+//string c = "";
 	for(int i= 0; i < ad.length(); i++){
-		//c(1, ad[i]);
-		char ch = ad.at(i);
-		c.push_back(ch);
+		string c(1, ad[i]);
+		//char ch = ad.at(i);
+		//c.push_back(ch);
 		//cout << endl << "the letter is: "<< c << endl;
 		previousNode = addNodetoDag(theDag, c, theDag->levels[i], previousNode, i);
 	}
@@ -281,13 +287,22 @@ void cleanup(aDag* theDag){
 		
 		while(curNode != NULL){
 			nextNode = curNode -> nextNode;
-			free(curNode -> nextLevelNodes);
-			//for( int j = 0; j < 
-			free(curNode);
+			//free(curNode -> nextLevelNodes);
+			//delete [] curNode -> nextLevelNodes;
+			for( int j = 0; j < POSSIBLE_VALUES; j ++){
+				delete curNode -> nextLevelNodes[j];
+			}
+			delete [] curNode -> nextLevelNodes;
+			//free(curNode);
+			delete(curNode);
 			curNode = nextNode;
 		}
 	}
-	free(theDag);	
+	//free(theDag);
+	/*for( int j = 0; j < TOTAL_LEVELS; j ++){
+		delete theDag -> levels[j];
+	}*/
+	delete theDag;	
 }
 
 
@@ -296,7 +311,8 @@ void cleanup(aDag* theDag){
 int  main(int argc, char* argv[]){
 
 	//initialize the dag
-	aDag* theDag = (aDag*)malloc(sizeof(aDag));
+	//aDag* theDag = (aDag*)malloc(sizeof(aDag));
+	aDag* theDag = new aDag;
 
 	if(theDag != NULL){
 		for(int i =0; i < TOTAL_LEVELS; i++){
@@ -307,7 +323,7 @@ int  main(int argc, char* argv[]){
 		printf("error in creating the dag");
 	}			
 
-	/*// open IPdata file and read and add each address	
+	// open IPdata file and read and add each address	
 	ifstream infile;
 	//argv[1] should be the file to be opened
 	//string openString = "dataSets/";
@@ -326,25 +342,10 @@ int  main(int argc, char* argv[]){
     	addAddress(ad, theDag);
 	}
 
-	infile.close();*/
+	infile.close();
 	
-	/*string ad = "aaa";
-	string ab = "abd";
-	string aa = "aaa";
-	string ac = "efd";*/
 
-	string ad = "2";
-	string ab = "2";
-	//string aa = "20";
-	//string ac = "30";
-
-	addAddress(ad, theDag);
-	addAddress(ab, theDag);
-	//addAddress(aa, theDag);
-	//addAddress(ac, theDag);
-
-
-	//dataToCsv(theDag, argv[2]); //argv[2] is the name of the output .csv file
+	dataToCsv(theDag, argv[2]); //argv[2] is the name of the output .csv file
 	dataToGraphInfo(theDag, "newGraphInfo");
 	cleanup(theDag);
 	
