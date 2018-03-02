@@ -277,6 +277,54 @@ void dataToGraphInfo(aDag* theDag, string fileName){
 	}	
 }
 
+
+string IPify(string ad){
+	int ipLen = ad.length();
+	int subCount = 0;
+	int colonCount = 0;
+	string addSub = "";
+	string ans = "";
+	char prevCh;
+	int i;
+	int j;
+	for(i = 0; i < ipLen; i++){
+		if(ad[i] == ':'){
+			colonCount +=1;
+		} 
+	}
+	for( i = 0; i < ipLen; i++){
+		if(ad[i] == ':' && prevCh == ':'){
+			for(j = 0; j < (8- colonCount); j++){
+					ans.append("0000");
+			}
+			subCount = 0;
+			continue;
+		}
+		else if( ad[i] != ':'){
+			addSub.append(&ad[i], 1);
+			subCount += 1;
+		}
+		else if(ad[i] == ':'){
+			for(j = 0; j <	 (4- subCount); j++){
+				ans.append("0");
+			}
+			ans.append(addSub);
+			subCount = 0;
+			addSub = "";
+		}
+		prevCh = ad[i];
+	}
+	//cout << subCount << endl;
+	for(j = 0; j < (4- subCount); j++){
+				ans.append("0");
+	}
+	ans.append(addSub);
+	int curLen = ans.length();
+	for(i = 0; i < (32- curLen); i ++){
+		ans.append("0");
+	}
+	return ans;
+}
 //free memory
 void cleanup(aDag* theDag){
 	for(int i = 0; i < TOTAL_LEVELS; i++){
@@ -336,14 +384,15 @@ int  main(int argc, char* argv[]){
 		string ad = sLine.data();
 		//stringReplacer(ad, "::", "0000");
 		//stringReplacer(ad, ":", "");
+
 		cout << ad << endl;
-    	addAddress(ad, theDag);
+    	addAddress(IPify(ad), theDag);
 	}
 
 	infile.close();
 	
 
-	dataToCsv(theDag, argv[2]); //argv[2] is the name of the output .csv file
+	//dataToCsv(theDag, argv[2]); //argv[2] is the name of the output .csv file
 	dataToGraphInfo(theDag, "newGraphInfo");
 	cleanup(theDag);
 	
