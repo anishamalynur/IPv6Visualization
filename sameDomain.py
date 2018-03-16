@@ -30,4 +30,6 @@ for key in domains:
 		outFile.write(item + '\n')
 	count += 1
 	outFile.close()
+
+print(count)
 		

@@ -6,9 +6,13 @@
 #include <string.h>
 #include <string>
 #include <fstream>
+#include <cstdlib>
 //#include <json/value.h>
 #define TOTAL_LEVELS 32
 #define POSSIBLE_VALUES 16
+
+#define PATH_MAX 100
+
 
 using namespace std;
 
@@ -42,7 +46,12 @@ int charToIndex(string ch){
 	return intChar;
 }
 
+string IndexToChar(int ind){
+    string chars[] = {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "a", "b", "c", "d", "e", "f"};
+    return chars[ind];
+}
 
+int totalCount = 0;
 //curNode is the node pointed to by a level# in DAG
 node* addNodetoDag(aDag* dag, string aChar, node* curNode, node* prevNode, int level){
 	
@@ -149,16 +158,108 @@ node* addNodetoDag(aDag* dag, string aChar, node* curNode, node* prevNode, int l
 	return newNode;
 }
 
+int pingAdr(string adr){
+	FILE *fp;
+	int status;
+	char path[PATH_MAX];
+	int counter = 0;
 
-/*void stringReplacer(string& address, const string& find, const string& replace){
-	int pos = 0;
-	while((pos = address.find(find, pos)) != std::string::npos){
-		address.replace(pos, find.length(), replace);
-		pos += replace.length();
+
+	const char* ipAddress = adr.c_str();
+	const char* pingString = "ping -c 10 ";
+	string ipString = adr;
+ 
+	char buffer[256]; // <- danger, only storage for 256 characters.
+	strncpy(buffer, pingString, sizeof(buffer));
+	strncat(buffer, ipAddress, sizeof(buffer));
+	//fprintf(stderr,"%s", buffer);
+
+	fp = popen(buffer, "r");
+	if (fp == NULL)
+		 /* Handle error */;
+
+
+	while (fgets(path, PATH_MAX, fp) != NULL){
+		// printf("%s", path);
+		 counter += 1;
 	}
 
-}*/
+	if(counter < 10){
+	return 0;
 
+	}
+
+	else{
+	return 1;
+
+	
+	}
+
+}
+
+
+void polyaUrn(aDag* theDag, int numNewAddresses){
+
+	int levelVals[TOTAL_LEVELS][POSSIBLE_VALUES + 1] = {0};// = new string[TOTAL_LEVELS][POSSIBLE_VALUES];
+	for(int i = 0; i < TOTAL_LEVELS; i++){
+		node* curNode = theDag->levels[i];
+		node* nextNode = NULL;
+		int j = 0;
+		while(curNode != NULL){
+			int innerInd = charToIndex(curNode->val);
+			levelVals[i][innerInd] = curNode -> count;
+			j++;
+			curNode = curNode -> nextNode;
+			
+		}
+	}
+//get random num for each level
+// repeat numNewAddresses times
+	for(int n = 0; n < numNewAddresses; n++){
+	int randomNum = 0;
+	string newAd = "";
+	for(int k = 0; k < TOTAL_LEVELS; k++){
+		//srand(time(NULL));
+		randomNum = (rand() % totalCount) + 1;
+		//cout << randomNum + ' ';
+		int sumToRandomNum = 0;
+		for(int j = 0; j < POSSIBLE_VALUES; j++){
+
+			sumToRandomNum += levelVals[k][j];
+			if(sumToRandomNum >= randomNum){
+				levelVals[k][j] += 1;
+				//cout << IndexToChar(j) + " ";
+				newAd.append(IndexToChar(j));
+				break;
+
+			}			
+		}
+	
+	}
+int success = pingAdr(newAd);
+if(success){
+cout<< "YAY\n";
+}
+else{
+cout << "Awh:(\n";
+}
+cout << '\n';
+	cout << newAd;
+}
+/*cout << '\n';
+	cout << totalCount;
+	srand(time(NULL));
+	cout << rand() % totalCount + 1;
+	cout << '\n';
+	cout << "I got here";
+	for(int a = 0; a < TOTAL_LEVELS; a++){
+				cout << "NEW LINE\n";
+		for(int b = 0; b < POSSIBLE_VALUES; b++){
+				cout << levelVals[a][b];
+				cout << " ";	
+		}
+	}*/
+}	
 void addAddress(string ad, aDag* theDag){
 
 
@@ -379,13 +480,15 @@ int  main(int argc, char* argv[]){
 	string sLine;
 
 	while (!infile.eof()){
-		
+		totalCount ++;
 		infile >> sLine;
 		string ad = sLine.data();
 		//stringReplacer(ad, "::", "0000");
 		//stringReplacer(ad, ":", "");
 
-		cout << ad << endl;
+		cout << IPify(ad) << endl;
+		pingAdr(IPify(ad));
+		pingAdr(IPify(ad));
     	addAddress(IPify(ad), theDag);
 	}
 
@@ -394,6 +497,7 @@ int  main(int argc, char* argv[]){
 
 	//dataToCsv(theDag, argv[2]); //argv[2] is the name of the output .csv file
 	dataToGraphInfo(theDag, "newGraphInfo");
+	polyaUrn(theDag, 5);
 	cleanup(theDag);
 	
 //	cout << "end of program " << endl;

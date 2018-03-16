@@ -14,7 +14,7 @@ int main(){
 	int status;
 	char path[PATH_MAX];
 	int counter = 0;
-	const char* ipAddress = "192.186.1.1";
+	const char* ipAddress = "2a00:1450:4001:81d::200e";//"192.186.1.1";
 	const char* pingString = "ping -c 10 ";
 	string ipString = ipAddress;
  
@@ -71,3 +71,36 @@ int main(){
 		
 	}
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -76,6 +76,19 @@ string randomize(string ad){
 
 }
 
+string randomize2(string ad){
+	char acceptableVals[16] ={'0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f'};
+	int randomInt = rand() % ad.length();
+	int randomInt2 = rand() % 16;
+	
+	while(ad[randomInt] != ':'){
+		 randomInt = rand() % ad.length();
+	}
+
+	ad[randomInt] = acceptableVals[randomInt2];
+	return ad;	
+}
+
 int main(){
 	/*string ad = "2001:56a:7870::1";
 	string newAd = IPify(ad);
@@ -89,8 +102,8 @@ int main(){
 	ifstream inFile;
 	ofstream outFile;
    string ipAd;
-   inFile.open("largePure.txt");
-	outFile.open("ipNormalized.txt");
+   inFile.open("33");
+	outFile.open("largerSyn.txt");
    if (!inFile) {
 		cout << "Unable to open file";
 		exit(1); // terminate with error
@@ -98,10 +111,11 @@ int main(){
     
     while (inFile >> ipAd) {
 		//cout << ipAd << endl;
-		string newAd = IPify(ipAd);
+		//string newAd = IPify(ipAd);
+		string newAd = ipAd;
 		outFile << newAd << endl;
 		for(int i = 0; i < 5; i ++){
-			string newAdRandom = randomize(newAd);
+			string newAdRandom = randomize2(newAd);
 			outFile << newAdRandom << endl;
 		}
     }
