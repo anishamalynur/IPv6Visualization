@@ -7,30 +7,38 @@
 #include <string>
 #include <fstream>
 #include <cstdlib>
-//#include <json/value.h>
+
 #define TOTAL_LEVELS 32
 #define POSSIBLE_VALUES 16
-
 #define PATH_MAX 100
 
+int totalCount = 0;
 
 using namespace std;
 
+////////////////////////////////////////  Data Structures ////////////////////////////////////////
+
 typedef struct NODE node;
 
+// Directed Acyclic Graph that holds 32 levels for IPv6
 typedef struct DAG{
 	node* levels[TOTAL_LEVELS];
 
 }aDag;
 
+// a level of the DAG is comprised of nodes
 typedef struct NODE{
 	string val;
 	int count;
-	int nCount;
+	int nCount; // only set if this is a nextLevelNode
 	node** nextLevelNodes;
 	node* nextNode;
 }node;
 
+
+////////////////////////////////////////  Helper Functions ////////////////////////////////////////
+
+// convert a character to it's corresponding index for an array of size 16
 int charToIndex(string ch){
 
 	char charChar = tolower((char)ch[0]); 
@@ -46,12 +54,13 @@ int charToIndex(string ch){
 	return intChar;
 }
 
+// Reverse of charToIndex - index to corresponding character
 string IndexToChar(int ind){
     string chars[] = {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "a", "b", "c", "d", "e", "f"};
     return chars[ind];
 }
+////////////////////////////////////////  DAG Creation ////////////////////////////////////////
 
-int totalCount = 0;
 //curNode is the node pointed to by a level# in DAG
 node* addNodetoDag(aDag* dag, string aChar, node* curNode, node* prevNode, int level){
 	
@@ -60,9 +69,9 @@ node* addNodetoDag(aDag* dag, string aChar, node* curNode, node* prevNode, int l
 
 	//check if aChar lives on the current level
 	while(flag && curNode != NULL){
-		// no
+		// no - character did not match
 		if(aChar.compare(curNode->val) != 0){
-			//cout<< "character did not match" << endl;
+
 			if(curNode -> nextNode == NULL){
 				lastNodeAtLevel = curNode;
 			}
@@ -264,6 +273,8 @@ cout << '\n';
 		}
 	}*/
 }	
+
+
 void addAddress(string ad, aDag* theDag){
 
 
@@ -441,6 +452,7 @@ void cleanup(aDag* theDag){
 			//free(curNode -> nextLevelNodes);
 			//delete [] curNode -> nextLevelNodes;
 			for( int j = 0; j < POSSIBLE_VALUES; j ++){
+				cout << curNode -> nextLevelNodes[j] -> val;
 				delete curNode -> nextLevelNodes[j];
 			}
 			delete [] curNode -> nextLevelNodes;
@@ -491,7 +503,7 @@ int  main(int argc, char* argv[]){
 		//stringReplacer(ad, ":", "");
 
 		cout << IPify(ad) << endl;
-		pingAdr(ad);
+		//pingAdr(ad);
 		//pingAdr(IPify(ad));
     	addAddress(IPify(ad), theDag);
 	}
