@@ -166,7 +166,7 @@ int pingAdr(string adr){
 
 
 	const char* ipAddress = adr.c_str();
-	const char* pingString = "ping -c 10 ";
+	const char* pingString = "ping6 -c 3 ";
 	string ipString = adr;
  
 	char buffer[256]; // <- danger, only storage for 256 characters.
@@ -184,12 +184,16 @@ int pingAdr(string adr){
 		 counter += 1;
 	}
 
-	if(counter < 10){
+	if(counter < 3){
+        cout << "BOO";
+
 	return 0;
 
 	}
 
 	else{
+        cout << "YAY";
+
 	return 1;
 
 	
@@ -487,8 +491,8 @@ int  main(int argc, char* argv[]){
 		//stringReplacer(ad, ":", "");
 
 		cout << IPify(ad) << endl;
-		pingAdr(IPify(ad));
-		pingAdr(IPify(ad));
+		pingAdr(ad);
+		//pingAdr(IPify(ad));
     	addAddress(IPify(ad), theDag);
 	}
 
@@ -497,7 +501,7 @@ int  main(int argc, char* argv[]){
 
 	//dataToCsv(theDag, argv[2]); //argv[2] is the name of the output .csv file
 	dataToGraphInfo(theDag, "newGraphInfo");
-	polyaUrn(theDag, 5);
+	//polyaUrn(theDag, 5);
 	cleanup(theDag);
 	
 //	cout << "end of program " << endl;
