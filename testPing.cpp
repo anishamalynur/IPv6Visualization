@@ -30,12 +30,12 @@ int pingAdr(string adr){
     
     
     const char* ipAddress = adr.c_str();
-    const char* pingString = "ping6 -c 3 ";
+    const char* pingString = "ping6 -c 1 "; //CHANGE BACK TO 3
     string ipString = adr;
     
     char buffer[256]; // <- danger, only storage for 256 characters.
-    strncpy(buffer, pingString, sizeof(buffer));
-    strncat(buffer, ipAddress, sizeof(buffer));
+    strncpy(buffer, pingString, sizeof(buffer)/2);
+    strncat(buffer, ipAddress, sizeof(buffer)/2);
     //fprintf(stderr,"%s", buffer);
     
     fp = popen(buffer, "r");
@@ -51,6 +51,8 @@ int pingAdr(string adr){
     if(counter < 7){
         cout << "BOO";
         wrongCount += 1;
+        pclose(fp);
+        //delete buffer;
         return 0;
         
     }
@@ -58,10 +60,14 @@ int pingAdr(string adr){
     else{
         cout << "YAY";
         correctCount +=1;
+        pclose(fp);
+        //delete buffer;
         return 1;
         
         
     }
+    pclose(fp);
+    delete[] buffer;
     
 }
 

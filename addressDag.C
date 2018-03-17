@@ -30,7 +30,7 @@ typedef struct DAG{
 typedef struct NODE{
 	string val;
 	int count;
-	int nCount; // only set if this is a nextLevelNode
+	int nCount; // only set if this is a node in nextLevelNode. Num of times this val has been encountered from the previous level.
 	node** nextLevelNodes;
 	node* nextNode;
 }node;
@@ -59,73 +59,106 @@ string IndexToChar(int ind){
     string chars[] = {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "a", "b", "c", "d", "e", "f"};
     return chars[ind];
 }
+
+// function that expands a compressed IP address
+string IPify(string ad){
+    int ipLen = ad.length(); int subCount = 0; int colonCount = 0; int i; int j;
+    string addSub = ""; string ans = "";
+    char prevCh;
+    for(i = 0; i < ipLen; i++){
+        if(ad[i] == ':'){
+            colonCount +=1;
+        }
+    }
+    for( i = 0; i < ipLen; i++){
+        if(ad[i] == ':' && prevCh == ':'){
+            for(j = 0; j < (8- colonCount); j++){
+                ans.append("0000");
+            }
+            subCount = 0;
+            continue;
+        }
+        else if( ad[i] != ':'){
+            addSub.append(&ad[i], 1);
+            subCount += 1;
+        }
+        else if(ad[i] == ':'){
+            for(j = 0; j < (4- subCount); j++){
+                ans.append("0");
+            }
+            ans.append(addSub);
+            subCount = 0;
+            addSub = "";
+        }
+        prevCh = ad[i];
+    }
+    for(j = 0; j < (4- subCount); j++){
+        ans.append("0");
+    }
+    ans.append(addSub);
+    int curLen = ans.length();
+    for(i = 0; i < (32- curLen); i ++){
+        ans.append("0");
+    }
+    return ans;
+}
+
+
 ////////////////////////////////////////  DAG Creation ////////////////////////////////////////
 
 //curNode is the node pointed to by a level# in DAG
 node* addNodetoDag(aDag* dag, string aChar, node* curNode, node* prevNode, int level){
 	
 	node* lastNodeAtLevel = NULL;
-	bool flag = true;
 
 	//check if aChar lives on the current level
-	while(flag && curNode != NULL){
+	while(curNode != NULL){
 		// no - character did not match
 		if(aChar.compare(curNode->val) != 0){
-
+            // get the next node in level if exists
 			if(curNode -> nextNode == NULL){
+                //reached last node in the level, keep track of it
 				lastNodeAtLevel = curNode;
 			}
 			curNode = curNode -> nextNode;		
 		}
-		// yes - increment count
+		// yes found a match! - increment count
 		else if(aChar.compare(curNode->val) == 0){
-			//cout<< "character match!!" << endl;
-
-			flag = false;
 			curNode->count += 1;
-			//cout << "current count for this node is " << curNode->count << endl;
-
 			// now check if a connection to the previous level node exists
+            // prevNode will be NULL if it is the first level
 			if(prevNode != NULL){
 				int index = charToIndex(aChar);
-				// if it exists then done
+				// if connections exists - increment nCount
 				if(prevNode->nextLevelNodes[index] != NULL){
-					//cout << "connection already existed "<< endl;
 					prevNode->nextLevelNodes[index] -> nCount++;
-					//cout << "ncount is " << prevNode->nextLevelNodes[index] -> nCount << "for the prev node" << prevNode -> val << "for the node pointer in nextLevelNodes" << prevNode->nextLevelNodes[index] ->val << endl;
 					return curNode;	
 				}
 				
-				// add connection 
-				//if((prevNode-> nextLevelNodes)[index] ==  NULL){
+				// No previous existing connection to previous level - add one
 				 else{
-					//cout << "adding connection" << endl;
-					//node* copyNode  =  (node*)malloc(sizeof(node));
-					node* copyNode = new node();  
-					//memcpy(&copyNode, &curNode, sizeof(node));
+					node* copyNode = new node();
 					copyNode -> val = aChar;
 					copyNode -> nCount = 0;
-					//((prevNode-> nextLevelNodes)[index]) = curNode;
 					((prevNode-> nextLevelNodes)[index]) = copyNode;
 					prevNode->nextLevelNodes[index] -> nCount++;
-	//cout << "ncount is " << prevNode->nextLevelNodes[index] -> nCount << "for the prev node" << prevNode -> val << "for the node pointer in nextLevelNodes" << prevNode->nextLevelNodes[index] ->val << endl;
-					return curNode;	
+					return curNode;
 				}
-
+            
 			}
+            // else no prevNode exists (this is the first level)
 			else{
 				return curNode;
 			}
 		} 
 	}
-	
-	// add a new node at level# because it did not exist
-	
-	//node* newNode = (node*)malloc(sizeof(node));
+	// Getting out of the while loop without returning means
+    // we must add a new node at level# because it did not exist
+
 	node* newNode = new node();
 	newNode->val = aChar;
 	newNode->count = 1;
-	//node** nextLNodes = (node**)malloc(sizeof(node*)*POSSIBLE_VALUES);
+
 	node** nextLNodes = new node*[POSSIBLE_VALUES];
 	for(int i  = 0; i < POSSIBLE_VALUES; i++){
 		nextLNodes[i] = NULL;
@@ -141,79 +174,82 @@ node* addNodetoDag(aDag* dag, string aChar, node* curNode, node* prevNode, int l
 	else{
 		lastNodeAtLevel->nextNode = newNode;
 	}
-	curNode = newNode; // do I need this??
-	//cout << "done creating new node because it did not exist in the level" << endl;
-	
-	//add connection if not the first level
+    
+	// done creating new node because it did not exist in the level
+	// add connection to previous level if not the first level
 	if(prevNode !=NULL){
 		int index = charToIndex(aChar);
-		/*cout << "adding connection because not the first level" << endl;
-		(prevNode-> nextLevelNodes)[index] = curNode;*/
-		
-					//cout << "adding connection2" << endl;
-					//node* copyNode =  (node*)malloc(sizeof(node));
-				node* copyNode = new node;   
-					//memcpy(&copyNode, &curNode, sizeof(node));
-				copyNode -> nCount = 0;
-				copyNode -> val = aChar;
-					//copyNode -> val = 
-					//((prevNode-> nextLevelNodes)[index]) = curNode;
-				((prevNode-> nextLevelNodes)[index]) = copyNode;
-					
-				prevNode->nextLevelNodes[index] -> nCount++;
-					//cout << "ncount is " << prevNode->nextLevelNodes[index] -> nCount << "for the prev node" << prevNode -> val << "for the node pointer in nextLevelNodes" << prevNode->nextLevelNodes[index] ->val << endl;
-
+        node* copyNode = new node;
+        copyNode -> nCount = 0;
+        copyNode -> val = aChar;
+        ((prevNode-> nextLevelNodes)[index]) = copyNode;
+        prevNode->nextLevelNodes[index] -> nCount++;
 	}
 	return newNode;
 }
 
+////////////////////////////////////////  Ping Function ////////////////////////////////////////
+
+// this function is responsible for using scamper's ping function to determine if the address is valid
 int pingAdr(string adr){
 	FILE *fp;
 	int status;
 	char path[PATH_MAX];
 	int counter = 0;
 
-
 	const char* ipAddress = adr.c_str();
 	const char* pingString = "ping6 -c 3 ";
 	string ipString = adr;
- 
-	char buffer[256]; // <- danger, only storage for 256 characters.
+    
+    // only storage for 256 characters - enough for 32 for ip and 11 for command
+	char buffer[256];
 	strncpy(buffer, pingString, sizeof(buffer));
 	strncat(buffer, ipAddress, sizeof(buffer));
-	//fprintf(stderr,"%s", buffer);
 
 	fp = popen(buffer, "r");
-	if (fp == NULL)
-		 /* Handle error */;
-
-
+    
+    if (fp == NULL){
+        cout << "error with popen";
+    }
+    
 	while (fgets(path, PATH_MAX, fp) != NULL){
-		// printf("%s", path);
-		 counter += 1;
+         counter += 1;
 	}
-
-	if(counter < 3){
-        cout << "BOO";
-
-	return 0;
-
+    //  unsuccessful ping
+	if(counter < 7){
+        //cout << "Not Good!";
+        return 0;
 	}
 
 	else{
-        cout << "YAY";
-
-	return 1;
-
-	
+        //cout << "Valid!";
+        return 1;
 	}
 
 }
 
+////////////////////////////////////////  Polya Urn Sampling ////////////////////////////////////////
+
+string addColons(string adr){
+    int count4 = 0;
+    //string c;
+    string newAdr = "";
+    for(int i= 0; i < adr.length(); i++){
+        count4++;
+        string c(1, adr[i]);
+        newAdr.append(c );
+        if(count4 == 4 & i!= adr.length() -1){
+            newAdr.append(":");
+            count4 = 0;
+        }
+    }
+    return newAdr;
+}
 
 void polyaUrn(aDag* theDag, int numNewAddresses){
-
-	int levelVals[TOTAL_LEVELS][POSSIBLE_VALUES + 1] = {0};// = new string[TOTAL_LEVELS][POSSIBLE_VALUES];
+    // levelVals is a double array that has 32 sub arrays of size 16.
+    //Each subarray's index is the total times the corresponding value has been encountered
+	int levelVals[TOTAL_LEVELS][POSSIBLE_VALUES] = {0};
 	for(int i = 0; i < TOTAL_LEVELS; i++){
 		node* curNode = theDag->levels[i];
 		node* nextNode = NULL;
@@ -223,42 +259,37 @@ void polyaUrn(aDag* theDag, int numNewAddresses){
 			levelVals[i][innerInd] = curNode -> count;
 			j++;
 			curNode = curNode -> nextNode;
-			
 		}
 	}
-//get random num for each level
-// repeat numNewAddresses times
-	for(int n = 0; n < numNewAddresses; n++){
-	int randomNum = 0;
-	string newAd = "";
-	for(int k = 0; k < TOTAL_LEVELS; k++){
-		//srand(time(NULL));
-		randomNum = (rand() % totalCount) + 1;
-		//cout << randomNum + ' ';
-		int sumToRandomNum = 0;
-		for(int j = 0; j < POSSIBLE_VALUES; j++){
+    //get random num for each level
+    // repeat numNewAddresses times
+    for(int n = 0; n < numNewAddresses; n++){
+        int randomNum = 0;
+        string newAd = "";
+        for(int k = 0; k < TOTAL_LEVELS; k++){
+            randomNum = (rand() % totalCount) + 1;
+            int sumToRandomNum = 0;
+            for(int j = 0; j < POSSIBLE_VALUES; j++){
+                sumToRandomNum += levelVals[k][j];
+                if(sumToRandomNum >= randomNum){
+                    levelVals[k][j] += 1;
+                    //cout << IndexToChar(j) + " ";
+                    newAd.append(IndexToChar(j));
+                    break;
 
-			sumToRandomNum += levelVals[k][j];
-			if(sumToRandomNum >= randomNum){
-				levelVals[k][j] += 1;
-				//cout << IndexToChar(j) + " ";
-				newAd.append(IndexToChar(j));
-				break;
-
-			}			
-		}
-	
+                }
+            }
 	}
-int success = pingAdr(newAd);
-if(success){
-cout<< "YAY\n";
-}
-else{
-cout << "Awh:(\n";
-}
-cout << '\n';
-	cout << newAd;
-}
+        int success = pingAdr(newAd);
+        if(success){
+        cout<< "YAY\n";
+        }
+        else{
+        cout << "Awh:(\n";
+        }
+        cout << '\n';
+        cout << newAd;
+    }
 /*cout << '\n';
 	cout << totalCount;
 	srand(time(NULL));
@@ -275,40 +306,25 @@ cout << '\n';
 }	
 
 
-void addAddress(string ad, aDag* theDag){
 
+////////////////////////////////////////  DAG info -> file ////////////////////////////////////////
 
-	node* previousNode = NULL;
-	//make
-//string c = "";
-	for(int i= 0; i < ad.length(); i++){
-		string c(1, ad[i]);
-		//char ch = ad.at(i);
-		//c.push_back(ch);
-		//cout << endl << "the letter is: "<< c << endl;
-		previousNode = addNodetoDag(theDag, c, theDag->levels[i], previousNode, i);
-	}
-
-}
-
+// produces a file (specified by fileName) that contains [level, nodeVal, #of Nodes, node#, [next level nodes val, nCount]]
+// example of first line: 0,2,1281,0,0,258,1,3,2,1,3,2,4,146,5,1,6,245,7,1,8,183,9,2,a,404,b,6,c,20,d,3,e,2,f,4,
 void dataToCsv(aDag* theDag, string fileName){
-   ofstream myfile;
-   myfile.open(fileName);
+    ofstream myfile;
+    myfile.open(fileName);
 	int curCount = 0;
-	
-   int totCount = 0;
+	int totCount = 0;
 	for(int i = 0; i < TOTAL_LEVELS; i++){
-		
 		node* curNode = theDag->levels[i];
 		node* nextNode = NULL;
-		
 		while(curNode != NULL){
 			myfile << std::to_string(i) + ",";
 			myfile << curNode->val + ",";
 			myfile << std::to_string(curNode-> count) + ",";
 			myfile << std::to_string(totCount) + ",";
 			totCount++;
-
 			for(int j = 0; j < POSSIBLE_VALUES; j++){
 				if(curNode -> nextLevelNodes[j] !=NULL){
 				myfile << curNode -> nextLevelNodes[j] -> val + ",";
@@ -317,36 +333,31 @@ void dataToCsv(aDag* theDag, string fileName){
 			}
 			myfile << "\n";
 			nextNode = curNode -> nextNode;
-	
 			curNode = nextNode;
 		}
-	
 	}
 	// signifies end of file
 	myfile << "9999999999999\n";
 	myfile << "9999999999999\n";
-	
 }
 
-
-
+// FIX ME - 2nd val not unique
+// produces a file (specified by fileName) that contains
+// [level number, number of unique nodes at a level, difference in nodes (smallest - largest), max next level connections, min next level connection,  average next level connections]
+// Example: 4,16,15,1,16,8
 void dataToGraphInfo(aDag* theDag, string fileName){
-   ofstream myFile;
-   myFile.open(fileName);
-	int curCount = 0;
-	
-   int totCount = 0;
+    ofstream myFile;
+    myFile.open(fileName);
+    int curCount = 0;
+    int totCount = 0;
 	for(int i = 0; i < TOTAL_LEVELS; i++){
-		
 		node* curNode = theDag->levels[i];
 		node* nextNode = NULL;
 		int levelCount = 0;
 		int minVal = 999;
 		int maxVal = -1;
 		int nextLevel[POSSIBLE_VALUES] = {0};
-
 		while(curNode != NULL){
-		
 			int nodeVal = charToIndex(curNode->val);
 			if( nodeVal < minVal){
 				minVal = nodeVal;	
@@ -354,18 +365,14 @@ void dataToGraphInfo(aDag* theDag, string fileName){
 			if(nodeVal > maxVal){
 				maxVal = nodeVal;
 			}
-
 			levelCount++;
-			
 			for(int j = 0; j < POSSIBLE_VALUES; j++){
 	
 				if(curNode -> nextLevelNodes[j] !=NULL){
 				nextLevel[j] +=1;
 				}
 			}
-		
 			nextNode = curNode -> nextNode;
-		
 			curNode = nextNode;
 		}
 		int minNextVal = 999;
@@ -375,7 +382,6 @@ void dataToGraphInfo(aDag* theDag, string fileName){
 		myFile << levelCount << ",";
 		myFile << (maxVal - minVal) << ",";
 		for(int j = 0; j < POSSIBLE_VALUES; j++){
-			
 			nextLevelSum += nextLevel[j]; 
 			if(nextLevel[j] < minNextVal){
 				minNextVal = nextLevel[j];
@@ -383,100 +389,48 @@ void dataToGraphInfo(aDag* theDag, string fileName){
 			if(nextLevel[j] > maxNextVal){
 				maxNextVal = nextLevel[j];
 			}
-			
 		}
 		myFile << minNextVal << ",";
 		myFile << maxNextVal << ",";
 		myFile << nextLevelSum/POSSIBLE_VALUES;
 		myFile << "\n";
-	
 	}	
 }
 
 
-string IPify(string ad){
-	int ipLen = ad.length();
-	int subCount = 0;
-	int colonCount = 0;
-	string addSub = "";
-	string ans = "";
-	char prevCh;
-	int i;
-	int j;
-	for(i = 0; i < ipLen; i++){
-		if(ad[i] == ':'){
-			colonCount +=1;
-		} 
-	}
-	for( i = 0; i < ipLen; i++){
-		if(ad[i] == ':' && prevCh == ':'){
-			for(j = 0; j < (8- colonCount); j++){
-					ans.append("0000");
-			}
-			subCount = 0;
-			continue;
-		}
-		else if( ad[i] != ':'){
-			addSub.append(&ad[i], 1);
-			subCount += 1;
-		}
-		else if(ad[i] == ':'){
-			for(j = 0; j <	 (4- subCount); j++){
-				ans.append("0");
-			}
-			ans.append(addSub);
-			subCount = 0;
-			addSub = "";
-		}
-		prevCh = ad[i];
-	}
-	//cout << subCount << endl;
-	for(j = 0; j < (4- subCount); j++){
-				ans.append("0");
-	}
-	ans.append(addSub);
-	int curLen = ans.length();
-	for(i = 0; i < (32- curLen); i ++){
-		ans.append("0");
-	}
-	return ans;
-}
-//free memory
+
+//////////////////////////////////////// Main() and Cleanup ////////////////////////////////////////
+
 void cleanup(aDag* theDag){
 	for(int i = 0; i < TOTAL_LEVELS; i++){
 		node* curNode = theDag->levels[i];
 		node* nextNode = NULL;
-		
 		while(curNode != NULL){
 			nextNode = curNode -> nextNode;
-			//free(curNode -> nextLevelNodes);
-			//delete [] curNode -> nextLevelNodes;
 			for( int j = 0; j < POSSIBLE_VALUES; j ++){
-				cout << curNode -> nextLevelNodes[j] -> val;
 				delete curNode -> nextLevelNodes[j];
 			}
 			delete [] curNode -> nextLevelNodes;
-			//free(curNode);
 			delete(curNode);
 			curNode = nextNode;
 		}
 	}
-	//free(theDag);
-	/*for( int j = 0; j < TOTAL_LEVELS; j ++){
-		delete theDag -> levels[j];
-	}*/
 	delete theDag;	
 }
 
-
-
+// used in main to parse an a single address character by character and add it to the DAG
+void addAddress(string ad, aDag* theDag){
+    node* previousNode = NULL;
+    for(int i= 0; i < ad.length(); i++){
+        string c(1, ad[i]);
+        previousNode = addNodetoDag(theDag, c, theDag->levels[i], previousNode, i);
+    }
+}
 
 int  main(int argc, char* argv[]){
-
 	//initialize the dag
-	//aDag* theDag = (aDag*)malloc(sizeof(aDag));
 	aDag* theDag = new aDag;
-
+    
 	if(theDag != NULL){
 		for(int i =0; i < TOTAL_LEVELS; i++){
 		theDag->levels[i] = NULL;
@@ -484,57 +438,26 @@ int  main(int argc, char* argv[]){
 	}
 	else{
 		printf("error in creating the dag");
-	}			
-
+	}
 	// open IPdata file and read and add each address	
 	ifstream infile;
-	//argv[1] should be the file to be opened
-	//string openString = "dataSets/";
-	//openString.append(argv[1]); //argv[1] is the name of the raw IPv6 file
-	//cout << openString;
+	//argv[1] should be the file to be opened - file of IPv6 addresses
 	infile.open(argv[1]);
 	string sLine;
-
 	while (!infile.eof()){
 		totalCount ++;
 		infile >> sLine;
 		string ad = sLine.data();
-		//stringReplacer(ad, "::", "0000");
-		//stringReplacer(ad, ":", "");
-
 		cout << IPify(ad) << endl;
-		//pingAdr(ad);
-		//pingAdr(IPify(ad));
+        cout << addColons(IPify(ad)) << endl;
     	addAddress(IPify(ad), theDag);
 	}
 
 	infile.close();
-	
-
 	//dataToCsv(theDag, argv[2]); //argv[2] is the name of the output .csv file
-	dataToGraphInfo(theDag, "newGraphInfo");
+	//dataToGraphInfo(theDag, "newGraphInfo");
 	//polyaUrn(theDag, 5);
 	cleanup(theDag);
-	
-//	cout << "end of program " << endl;
 }
-
-
-	//testing simple cases
-	/*string ad = "aaa";
-	string ab = "abd";
-	string aa = "aaa";
-	string ac = "efd";*/
-
-	/*string ad = "20";
-	string ab = "20";
-	string aa = "20";
-	string ac = "30";
-
-	addAddress(ad, theDag);
-	addAddress(ab, theDag);
-	addAddress(aa, theDag);
-	addAddress(ac, theDag);
-	//addAddress(ad, theDag);*/
 
 
