@@ -10,7 +10,7 @@
 
 #define TOTAL_LEVELS 32
 #define POSSIBLE_VALUES 16
-#define PATH_MAX 100
+#define MAX_PATH 100
 
 int totalCount = 0;
 
@@ -194,7 +194,7 @@ node* addNodetoDag(aDag* dag, string aChar, node* curNode, node* prevNode, int l
 int pingAdr(string adr){
 	FILE *fp;
 	int status;
-	char path[PATH_MAX];
+	char path[MAX_PATH];
 	int counter = 0;
 
 	const char* ipAddress = adr.c_str();
@@ -203,8 +203,8 @@ int pingAdr(string adr){
     
     // only storage for 256 characters - enough for 32 for ip and 11 for command
 	char buffer[256];
-	strncpy(buffer, pingString, sizeof(buffer));
-	strncat(buffer, ipAddress, sizeof(buffer));
+	strncpy(buffer, pingString, sizeof(buffer) - 1);
+	strncat(buffer, ipAddress,  sizeof(buffer) - strlen(buffer) - 1);
 
 	fp = popen(buffer, "r");
     
@@ -212,17 +212,19 @@ int pingAdr(string adr){
         cout << "error with popen";
     }
     
-	while (fgets(path, PATH_MAX, fp) != NULL){
+	while (fgets(path, MAX_PATH, fp) != NULL){
          counter += 1;
 	}
     //  unsuccessful ping
 	if(counter < 7){
         //cout << "Not Good!";
+         pclose(fp);
         return 0;
 	}
 
 	else{
         //cout << "Valid!";
+         pclose(fp);
         return 1;
 	}
 
@@ -246,10 +248,19 @@ string addColons(string adr){
     return newAdr;
 }
 
+void increaseDagNodeCount(int (&lVals)[TOTAL_LEVELS][POSSIBLE_VALUES], string adr){
+    int charIndex;
+    for(int i= 0; i < adr.length(); i++){
+        string c(1, adr[i]);
+        charIndex = charToIndex(c);
+        lVals[i][charIndex] += 1;
+    }
+}
+
 void polyaUrn(aDag* theDag, int numNewAddresses){
     // levelVals is a double array that has 32 sub arrays of size 16.
     //Each subarray's index is the total times the corresponding value has been encountered
-	int levelVals[TOTAL_LEVELS][POSSIBLE_VALUES] = {0};
+    int levelVals[TOTAL_LEVELS][POSSIBLE_VALUES] = {{0}};
 	for(int i = 0; i < TOTAL_LEVELS; i++){
 		node* curNode = theDag->levels[i];
 		node* nextNode = NULL;
@@ -263,11 +274,13 @@ void polyaUrn(aDag* theDag, int numNewAddresses){
 	}
     //get random num for each level
     // repeat numNewAddresses times
+    
     for(int n = 0; n < numNewAddresses; n++){
         int randomNum = 0;
         string newAd = "";
         for(int k = 0; k < TOTAL_LEVELS; k++){
             randomNum = (rand() % totalCount) + 1;
+            //cout << randomNum << endl;
             int sumToRandomNum = 0;
             for(int j = 0; j < POSSIBLE_VALUES; j++){
                 sumToRandomNum += levelVals[k][j];
@@ -280,15 +293,15 @@ void polyaUrn(aDag* theDag, int numNewAddresses){
                 }
             }
 	}
-        int success = pingAdr(newAd);
+        int success = pingAdr(addColons(newAd));
         if(success){
-        cout<< "YAY\n";
+        cout<< "YAY";
+        increaseDagNodeCount(levelVals, IPify(newAd));
         }
         else{
-        cout << "Awh:(\n";
+        cout << "Awh:(";
         }
-        cout << '\n';
-        cout << newAd;
+        cout << newAd << endl;
     }
 /*cout << '\n';
 	cout << totalCount;
@@ -401,6 +414,7 @@ void dataToGraphInfo(aDag* theDag, string fileName){
 
 //////////////////////////////////////// Main() and Cleanup ////////////////////////////////////////
 
+// called to clear memory
 void cleanup(aDag* theDag){
 	for(int i = 0; i < TOTAL_LEVELS; i++){
 		node* curNode = theDag->levels[i];
@@ -418,6 +432,8 @@ void cleanup(aDag* theDag){
 	delete theDag;	
 }
 
+
+
 // used in main to parse an a single address character by character and add it to the DAG
 void addAddress(string ad, aDag* theDag){
     node* previousNode = NULL;
@@ -429,6 +445,7 @@ void addAddress(string ad, aDag* theDag){
 
 int  main(int argc, char* argv[]){
 	//initialize the dag
+    srand(time(0));
 	aDag* theDag = new aDag;
     
 	if(theDag != NULL){
@@ -449,14 +466,14 @@ int  main(int argc, char* argv[]){
 		infile >> sLine;
 		string ad = sLine.data();
 		cout << IPify(ad) << endl;
-        cout << addColons(IPify(ad)) << endl;
+       //cout << addColons(IPify(ad)) << endl;
     	addAddress(IPify(ad), theDag);
 	}
 
 	infile.close();
 	//dataToCsv(theDag, argv[2]); //argv[2] is the name of the output .csv file
 	//dataToGraphInfo(theDag, "newGraphInfo");
-	//polyaUrn(theDag, 5);
+	polyaUrn(theDag, 10000);
 	cleanup(theDag);
 }
 
