@@ -258,6 +258,8 @@ void increaseDagNodeCount(int (&lVals)[TOTAL_LEVELS][POSSIBLE_VALUES], string ad
 }
 
 void polyaUrn(aDag* theDag, int numNewAddresses){
+    
+
     // levelVals is a double array that has 32 sub arrays of size 16.
     //Each subarray's index is the total times the corresponding value has been encountered
     int levelVals[TOTAL_LEVELS][POSSIBLE_VALUES] = {{0}};
@@ -272,12 +274,14 @@ void polyaUrn(aDag* theDag, int numNewAddresses){
 			curNode = curNode -> nextNode;
 		}
 	}
+
     //get random num for each level
     // repeat numNewAddresses times
     
     for(int n = 0; n < numNewAddresses; n++){
         int randomNum = 0;
         string newAd = "";
+
         for(int k = 0; k < TOTAL_LEVELS; k++){
             randomNum = (rand() % totalCount) + 1;
             //cout << randomNum << endl;
@@ -285,7 +289,7 @@ void polyaUrn(aDag* theDag, int numNewAddresses){
             for(int j = 0; j < POSSIBLE_VALUES; j++){
                 sumToRandomNum += levelVals[k][j];
                 if(sumToRandomNum >= randomNum){
-                    levelVals[k][j] += 1;
+                    //levelVals[k][j] += 1;
                     //cout << IndexToChar(j) + " ";
                     newAd.append(IndexToChar(j));
                     break;
@@ -310,7 +314,7 @@ void polyaUrn(aDag* theDag, int numNewAddresses){
 	cout << '\n';
 	cout << "I got here";
 	for(int a = 0; a < TOTAL_LEVELS; a++){
-				cout << "NEW LINE\n";
+				        cout << endl;
 		for(int b = 0; b < POSSIBLE_VALUES; b++){
 				cout << levelVals[a][b];
 				cout << " ";	
@@ -354,22 +358,20 @@ void dataToCsv(aDag* theDag, string fileName){
 	myfile << "9999999999999\n";
 }
 
-// FIX ME - 2nd val not unique
+
 // produces a file (specified by fileName) that contains
-// [level number, number of unique nodes at a level, difference in nodes (smallest - largest), max next level connections, min next level connection,  average next level connections]
+// [level number, number of unique nodes at a level, difference in nodes (smallest - largest), min next level connections, max next level connection,  average next level connections]
 // Example: 4,16,15,1,16,8
 void dataToGraphInfo(aDag* theDag, string fileName){
     ofstream myFile;
     myFile.open(fileName);
-    int curCount = 0;
-    int totCount = 0;
 	for(int i = 0; i < TOTAL_LEVELS; i++){
 		node* curNode = theDag->levels[i];
 		node* nextNode = NULL;
-		int levelCount = 0;
-		int minVal = 999;
-		int maxVal = -1;
-		int nextLevel[POSSIBLE_VALUES] = {0};
+		int levelCount = 0; // number of unique nodes
+		int minVal = 999; // initializing minimum node value seen at a level
+		int maxVal = -1; // initializing max node value seen at a level
+		int nextLevel[POSSIBLE_VALUES] = {0}; // an array of 16 indicating how many times a particular node is encountered at the next level
 		while(curNode != NULL){
 			int nodeVal = charToIndex(curNode->val);
 			if( nodeVal < minVal){
@@ -388,6 +390,7 @@ void dataToGraphInfo(aDag* theDag, string fileName){
 			nextNode = curNode -> nextNode;
 			curNode = nextNode;
 		}
+        //after iterating through a particular level's nodes
 		int minNextVal = 999;
 		int maxNextVal = -1;
 		int nextLevelSum = 0;
@@ -432,7 +435,19 @@ void cleanup(aDag* theDag){
 	delete theDag;	
 }
 
-
+// initialize a new DAG
+aDag* initializeDag(){
+    aDag* theDag = new aDag;
+    if(theDag != NULL){
+        for(int i =0; i < TOTAL_LEVELS; i++){
+            theDag->levels[i] = NULL;
+        }
+    }
+    else{
+        printf("error in creating the dag");
+    }
+    return theDag;
+}
 
 // used in main to parse an a single address character by character and add it to the DAG
 void addAddress(string ad, aDag* theDag){
@@ -443,7 +458,49 @@ void addAddress(string ad, aDag* theDag){
     }
 }
 
+// this main function can be used when the file inputed is sorted by ASN number (in proper format *, ASN #, IP's)
 int  main(int argc, char* argv[]){
+    
+    //initialize the dag
+    aDag* theDag = NULL;
+    string title;
+    // open IPdata file and read and add each address
+    ifstream infile;
+    infile.open(argv[1]);
+    
+    srand(time(0)); // random seed
+    string sLine;
+    string ad;
+    while (!infile.eof()){
+        
+        infile >> sLine;
+        ad = sLine.data();
+        cout << ad << endl;
+        if(ad == "*"){
+            if(theDag != NULL){
+                dataToGraphInfo(theDag, title);
+                polyaUrn(theDag, 2);
+                cleanup(theDag);
+                totalCount = 0;
+            }
+            theDag = initializeDag();
+            infile >> sLine;
+            cout << "starting with ASN " << sLine << endl;
+            title =  sLine.data();
+        }
+        else{
+            //cout << IPify(ad) << endl;
+            totalCount ++;
+            addAddress(IPify(ad), theDag);
+        }
+    }
+    
+    infile.close();
+}
+
+// use this main function when you have a list of IP addresses not sorted by ASN number
+
+/*int  main(int argc, char* argv[]){
 	//initialize the dag
     srand(time(0));
 	aDag* theDag = new aDag;
@@ -472,9 +529,9 @@ int  main(int argc, char* argv[]){
 
 	infile.close();
 	//dataToCsv(theDag, argv[2]); //argv[2] is the name of the output .csv file
-	//dataToGraphInfo(theDag, "newGraphInfo");
-	polyaUrn(theDag, 10000);
+	dataToGraphInfo(theDag, "newGraphInfo");
+	//polyaUrn(theDag, 10000);
 	cleanup(theDag);
-}
+}*/
 
 
