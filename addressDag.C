@@ -458,8 +458,8 @@ void addAddress(string ad, aDag* theDag){
     }
 }
 
-// this main function can be used when the file inputed is sorted by ASN number (in proper format *, ASN #, IP's)
-int  main(int argc, char* argv[]){
+// this main function can be used when the file inputed is sorted by ASN number (in proper format * \n, ASN # \n,  each of the IP's \n)
+/*int  main(int argc, char* argv[]){
     
     //initialize the dag
     aDag* theDag = NULL;
@@ -496,11 +496,11 @@ int  main(int argc, char* argv[]){
     }
     
     infile.close();
-}
+}*/
 
 // use this main function when you have a list of IP addresses not sorted by ASN number
 
-/*int  main(int argc, char* argv[]){
+int  main(int argc, char* argv[]){
 	//initialize the dag
     srand(time(0));
 	aDag* theDag = new aDag;
@@ -530,8 +530,9 @@ int  main(int argc, char* argv[]){
 	infile.close();
 	//dataToCsv(theDag, argv[2]); //argv[2] is the name of the output .csv file
 	dataToGraphInfo(theDag, "newGraphInfo");
+	dataToCsv(theDag, "sankeyGraph");
 	//polyaUrn(theDag, 10000);
 	cleanup(theDag);
-}*/
+}
 
 
